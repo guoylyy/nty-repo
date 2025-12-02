@@ -118,7 +118,9 @@ app.post('/api/generate-review', async (req, res) => {
     );
 
     const review = response.data.choices[0].message.content.trim();
-    res.json({ review });
+    // 去除markdown标记
+    const cleanReview = removeMarkdown(review);
+    res.json({ review: cleanReview });
 
   } catch (error) {
     console.error('生成评论时出错:', error.message);
@@ -127,7 +129,35 @@ app.post('/api/generate-review', async (req, res) => {
       details: error.message 
     });
   }
-});
+}
+
+// 去除markdown标记的函数
+function removeMarkdown(text) {
+  if (!text) return text;
+  
+  let cleaned = text;
+  
+  // 移除加粗和斜体标记：**text** 或 *text* -> text
+  cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, '$1');
+  cleaned = cleaned.replace(/\*(.*?)\*/g, '$1');
+  
+  // 移除行内代码标记：`text` -> text
+  cleaned = cleaned.replace(/`(.*?)`/g, '$1');
+  
+  // 移除标题标记：### text -> text
+  cleaned = cleaned.replace(/^#+\s+/gm, '');
+  
+  // 移除链接标记：[text](url) -> text
+  cleaned = cleaned.replace(/\[(.*?)\]\(.*?\)/g, '$1');
+  
+  // 移除多余的空行
+  cleaned = cleaned.replace(/\n\s*\n\s*\n/g, '\n\n');
+  
+  // 移除首尾空白
+  cleaned = cleaned.trim();
+  
+  return cleaned;
+}
 
 // 启动服务器
 app.listen(port, () => {
