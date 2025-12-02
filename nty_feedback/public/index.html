@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>牛踏云好评生成器 - 快速生成大众点评好评文案</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(to right, #d32f2f, #b71c1c);
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .hotpot-icon {
+            font-size: 2.8rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .main-content {
+            padding: 40px;
+        }
+        
+        .control-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #d32f2f;
+        }
+        
+        .control-panel h2 {
+            color: #d32f2f;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, #d32f2f, #ff5252);
+            color: white;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(to right, #b71c1c, #e53935);
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(211, 47, 47, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #f1f3f4;
+            color: #5f6368;
+            border: 1px solid #dadce0;
+        }
+        
+        .btn-secondary:hover {
+            background: #e8eaed;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: linear-gradient(to right, #388e3c, #4caf50);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(to right, #2e7d32, #43a047);
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(56, 142, 60, 0.3);
+        }
+        
+        .review-container {
+            margin-top: 20px;
+        }
+        
+        .review-box {
+            background: #fff;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px dashed #e0e0e0;
+            min-height: 250px;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #444;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            transition: border-color 0.3s;
+        }
+        
+        .review-box:focus {
+            outline: none;
+            border-color: #d32f2f;
+        }
+        
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .review-header h3 {
+            color: #d32f2f;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .word-count {
+            background: #f5f5f5;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #d32f2f;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 5px solid #4caf50;
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 5px solid #d32f2f;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 25px;
+            background: #f8f9fa;
+            color: #666;
+            border-top: 1px solid #eee;
+            font-size: 0.95rem;
+        }
+        
+        .instructions {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            border-left: 5px solid #2196f3;
+        }
+        
+        .instructions h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            line-height: 1.7;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-content {
+                padding: 25px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-fire-alt hotpot-icon"></i> 火锅店好评生成器</h1>
+            <p>专为牛踏云设计</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="control-panel">
+                
+                <p style="margin-bottom: 20px; color: #666;">点击下方按钮，系统将使用AI智能生成好评文案。</p>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" id="generateBtn">
+                        <i class="fas fa-bolt"></i> 生成好评文案
+                    </button>
+                    <button class="btn btn-secondary" id="copyBtn" disabled>
+                        <i class="far fa-copy"></i> 复制文案
+                    </button>
+                    <button class="btn btn-secondary" id="clearBtn">
+                        <i class="fas fa-eraser"></i> 清空内容
+                    </button>
+                </div>
+            </div>
+            
+            <div class="message success" id="successMessage">
+                <i class="fas fa-check-circle"></i> <span id="successText"></span>
+            </div>
+            
+            <div class="message error" id="errorMessage">
+                <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
+            </div>
+            
+            <div class="review-container">
+                <div class="review-header">
+                    <h3><i class="far fa-edit"></i> 生成的好评文案</h3>
+                    <div class="word-count">字数: <span id="wordCount">0</span> 字</div>
+                </div>
+                <div class="review-box" id="reviewBox" contenteditable="true" placeholder="点击上方按钮生成好评文案..."></div>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>AI正在为您生成好评文案，请稍候...</p>
+                <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">通常需要5-10秒</p>
+            </div>
+            
+            <div class="instructions">
+                <h3><i class="fas fa-lightbulb"></i> 使用说明</h3>
+                <ul>
+                    <li>点击<strong>"生成好评文案"</strong>按钮，系统将自动生成150-200字的火锅店好评</li>
+                    <li>生成后，您可以<strong>编辑文案</strong>内容，使其更符合您的实际情况</li>
+                    <li>点击<strong>"复制文案"</strong>按钮，将文案复制到剪贴板，然后粘贴到大众点评App</li>
+                    <li>如需重新生成，请先点击<strong>"清空内容"</strong>按钮，然后再次生成</li>
+                    <li>提示：您可以直接在文本框内编辑生成的内容，自定义菜品、服务等细节</li>
+                </ul>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 火锅店好评生成器 | 使用Deepseek AI技术生成 | 仅供合法合规使用</p>
+            <p style="margin-top: 5px; font-size: 0.9rem; color: #888;">本工具旨在帮助火锅店提升服务质量，请勿用于虚假宣传</p>
+        </footer>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generateBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const reviewBox = document.getElementById('reviewBox');
+            const loading = document.getElementById('loading');
+            const successMessage = document.getElementById('successMessage');
+            const errorMessage = document.getElementById('errorMessage');
+            const successText = document.getElementById('successText');
+            const errorText = document.getElementById('errorText');
+            const wordCount = document.getElementById('wordCount');
+            
+            // 更新字数统计
+            function updateWordCount() {
+                const text = reviewBox.textContent || reviewBox.innerText;
+                const count = text.replace(/\s/g, '').length;
+                wordCount.textContent = count;
+                
+                // 启用/禁用复制按钮
+                copyBtn.disabled = count === 0;
+            }
+            
+            // 监听文本框内容变化
+            reviewBox.addEventListener('input', updateWordCount);
+            
+            // 生成好评文案
+            generateBtn.addEventListener('click', async function() {
+                // 显示加载动画
+                loading.style.display = 'block';
+                successMessage.style.display = 'none';
+                errorMessage.style.display = 'none';
+                generateBtn.disabled = true;
+                generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 生成中...';
+                
+                try {
+                    const response = await fetch('/api/generate-review', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            prompt: '', // 使用默认提示
+                            temperature: 0.7,
+                            max_tokens: 350
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        // 显示生成的内容
+                        reviewBox.textContent = data.review;
+                        
+                        // 显示成功消息
+                        successText.textContent = '好评文案已生成！您可以编辑内容或直接复制使用。';
+                        successMessage.style.display = 'block';
+                        
+                        // 滚动到内容区域
+                        reviewBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                        throw new Error(data.error || data.details || '生成失败');
+                    }
+                } catch (error) {
+                    // 显示错误消息
+                    errorText.textContent = `生成失败: ${error.message}`;
+                    errorMessage.style.display = 'block';
+                    
+                    // 如果API密钥未设置，提供提示
+                    if (error.message.includes('API 密钥')) {
+                        errorText.textContent += '。请管理员在backend/.env文件中设置DEEPSEEK_API_KEY。';
+                    }
+                } finally {
+                    // 隐藏加载动画
+                    loading.style.display = 'none';
+                    generateBtn.disabled = false;
+                    generateBtn.innerHTML = '<i class="fas fa-bolt"></i> 生成好评文案';
+                    
+                    // 更新字数统计
+                    updateWordCount();
+                }
+            });
+            
+            // 复制文案到剪贴板
+            copyBtn.addEventListener('click', function() {
+                const text = reviewBox.textContent || reviewBox.innerText;
+                
+                if (text.trim().length === 0) {
+                    errorText.textContent = '没有内容可复制，请先生成文案。';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        successText.textContent = '文案已成功复制到剪贴板！您可以粘贴到大众点评了。';
+                        successMessage.style.display = 'block';
+                        
+                        // 3秒后隐藏消息
+                        setTimeout(() => {
+                            successMessage.style.display = 'none';
+                        }, 3000);
+                    })
+                    .catch(err => {
+                        errorText.textContent = '复制失败，请手动选择文本复制。';
+                        errorMessage.style.display = 'block';
+                        console.error('复制失败:', err);
+                    });
+            });
+            
+            // 清空内容
+            clearBtn.addEventListener('click', function() {
+                reviewBox.textContent = '';
+                successMessage.style.display = 'none';
+                errorMessage.style.display = 'none';
+                updateWordCount();
+            });
+            
+            // 初始化字数统计
+            updateWordCount();
+            
+            // 显示欢迎提示
+            setTimeout(() => {
+                successText.textContent = '欢迎使用火锅店好评生成器！点击"生成好评文案"按钮开始。';
+                successMessage.style.display = 'block';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
