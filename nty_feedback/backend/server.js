@@ -129,7 +129,7 @@ app.post('/api/generate-review', async (req, res) => {
       details: error.message 
     });
   }
-}
+})
 
 // 去除markdown标记的函数
 function removeMarkdown(text) {
