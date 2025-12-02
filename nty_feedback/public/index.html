@@ -434,22 +434,94 @@
                     return;
                 }
                 
-                navigator.clipboard.writeText(text)
-                    .then(() => {
-                        successText.textContent = '文案已成功复制到剪贴板！您可以粘贴到大众点评了。';
-                        successMessage.style.display = 'block';
-                        
-                        // 3秒后隐藏消息
-                        setTimeout(() => {
-                            successMessage.style.display = 'none';
-                        }, 3000);
-                    })
-                    .catch(err => {
-                        errorText.textContent = '复制失败，请手动选择文本复制。';
-                        errorMessage.style.display = 'block';
-                        console.error('复制失败:', err);
-                    });
+                copyToClipboard(text);
             });
+            
+            // 通用的复制到剪贴板函数，支持现代和传统方法
+            function copyToClipboard(text) {
+                // 尝试使用现代 Clipboard API
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text)
+                        .then(() => {
+                            showCopySuccess();
+                        })
+                        .catch(err => {
+                            // 如果现代 API 失败，尝试使用传统方法
+                            console.warn('现代 Clipboard API 失败，尝试传统方法:', err);
+                            fallbackCopyTextToClipboard(text);
+                        });
+                } else {
+                    // 浏览器不支持现代 API，使用传统方法
+                    fallbackCopyTextToClipboard(text);
+                }
+            }
+            
+            // 传统复制方法
+            function fallbackCopyTextToClipboard(text) {
+                try {
+                    // 创建一个临时 textarea 元素
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    textArea.style.position = 'fixed';
+                    textArea.style.top = '0';
+                    textArea.style.left = '0';
+                    textArea.style.width = '2em';
+                    textArea.style.height = '2em';
+                    textArea.style.padding = '0';
+                    textArea.style.border = 'none';
+                    textArea.style.outline = 'none';
+                    textArea.style.boxShadow = 'none';
+                    textArea.style.background = 'transparent';
+                    
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    
+                    // 尝试执行复制命令
+                    const successful = document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    if (successful) {
+                        showCopySuccess();
+                    } else {
+                        showCopyError('复制失败，请手动选择文本复制。');
+                    }
+                } catch (err) {
+                    console.error('传统复制方法失败:', err);
+                    showCopyError('复制失败，请手动选择文本复制。错误：' + err.message);
+                }
+            }
+            
+            // 显示复制成功消息
+            function showCopySuccess() {
+                // 更新复制按钮状态
+                const originalHTML = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                copyBtn.classList.remove('btn-secondary');
+                copyBtn.classList.add('btn-success');
+                
+                successText.textContent = '文案已成功复制到剪贴板！您可以粘贴到大众点评了。';
+                successMessage.style.display = 'block';
+                
+                // 3秒后恢复按钮状态
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalHTML;
+                    copyBtn.classList.remove('btn-success');
+                    copyBtn.classList.add('btn-secondary');
+                    successMessage.style.display = 'none';
+                }, 3000);
+            }
+            
+            // 显示复制错误消息
+            function showCopyError(message) {
+                errorText.textContent = message;
+                errorMessage.style.display = 'block';
+                
+                // 5秒后隐藏错误消息
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 5000);
+            }
             
             // 清空内容
             clearBtn.addEventListener('click', function() {
